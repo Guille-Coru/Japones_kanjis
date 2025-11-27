@@ -59,7 +59,7 @@ kanji_dict = {
 if "remaining" not in st.session_state:
     st.session_state.remaining = list(kanji_dict.keys())
     st.session_state.intentos = {k: 0 for k in kanji_dict}
-    st.session_state.colores = {k: "lightgray" for k in kanji_dict}  # color por defecto
+    st.session_state.colores = {k: "lightgray" for k in kanji_dict}
     st.session_state.total_clicks = 0
     st.session_state.total_aciertos = 0
     st.session_state.start_time = time.time()
@@ -79,18 +79,15 @@ def check_answer(clicked):
 
     if clicked == st.session_state.target:
         st.session_state.total_aciertos += 1
-        # Colorear según intento
         if intentos == 1:
             st.session_state.colores[clicked] = "green"
         elif intentos == 2:
             st.session_state.colores[clicked] = "yellow"
         elif intentos == 3:
             st.session_state.colores[clicked] = "orange"
-        # Avanzar
         st.session_state.remaining.remove(st.session_state.target)
         next_question()
     else:
-        # Fallo: si llega a 3 intentos sin acertar, marcar rojo
         if intentos >= 3:
             st.session_state.colores[st.session_state.target] = "red"
             st.session_state.remaining.remove(st.session_state.target)
@@ -120,27 +117,18 @@ cols = st.columns(7)
 for i, k in enumerate(kanjis):
     c = cols[i % 7]
     color = st.session_state.colores[k]
-    # Cada celda es un botón HTML con fondo coloreado
-    button_html = f"""
-    <div style="display:inline-block;
-                width:60px;height:60px;
-                background-color:{color};
-                text-align:center;
-                line-height:60px;
-                border-radius:5px;
-                border:1px solid black;
-                cursor:pointer;">
-        <form action="" method="post">
-            <button name="btn" value="{k}" style="background:none;border:none;width:100%;height:100%;font-size:24px;">
-                {k}
-            </button>
-        </form>
-    </div>
+    # Botón con estilo CSS inline
+    button_style = f"""
+        <style>
+        div[data-testid="stButton"] > button#{k} {{
+            background-color: {color};
+            color: black;
+            font-size: 24px;
+            height: 60px;
+            width: 60px;
+        }}
+        </style>
     """
-    c.markdown(button_html, unsafe_allow_html=True)
-
-# --- CAPTURA DE CLICK ---
-# Streamlit no captura directamente botones HTML, así que usamos st.button normal para la lógica
-for k in kanjis:
-    if st.button(k, key=f"hidden-{k}"):
+    st.markdown(button_style, unsafe_allow_html=True)
+    if c.button(k, key=k):
         check_answer(k)
